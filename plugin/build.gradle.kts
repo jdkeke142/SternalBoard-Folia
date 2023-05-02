@@ -5,6 +5,7 @@ plugins {
 
 repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+    maven("https://mvn-repo.arim.space/lesser-gpl3/")
     mavenCentral()
 }
 
@@ -12,6 +13,7 @@ dependencies {
     api(project(":api"))
     compileOnly(libs.spigot)
     compileOnly(libs.placeholder)
+    implementation(libs.morepaperlib)
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
     testRuntimeOnly(libs.spigot)
@@ -20,6 +22,7 @@ dependencies {
 
 tasks {
     shadowJar {
+        relocate("space.arim", "com.xism4.sternalboard")
         archiveBaseName.set("SternalBoard")
         destinationDirectory.set(file("$rootDir/bin/"))
         minimize()

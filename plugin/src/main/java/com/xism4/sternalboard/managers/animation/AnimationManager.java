@@ -7,13 +7,14 @@ import com.xism4.sternalboard.managers.ScoreboardManager;
 import com.xism4.sternalboard.managers.animation.tasks.LineUpdateTask;
 import com.xism4.sternalboard.managers.animation.tasks.TitleUpdateTask;
 import com.xism4.sternalboard.utils.TextUtils;
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import space.arim.morepaperlib.MorePaperLib;
+import space.arim.morepaperlib.scheduling.ScheduledTask;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class AnimationManager {
     private final SternalBoardPlugin plugin;
@@ -41,13 +42,15 @@ public class AnimationManager {
         this.title = titleLines.get(0);
 
         TitleUpdateTask titleUpdateTask = new TitleUpdateTask(plugin, this, titleLines);
-        long updateRateInTicks = config.getInt("scoreboard-animated.title.update-rate") * 50L;
-        ScheduledTask scheduledTask = plugin.getServer().getAsyncScheduler().runAtFixedRate(
-                plugin,
+        long updateRateMillis = config.getInt("scoreboard-animated.title.update-rate") * 50L;
+
+        MorePaperLib paperLib = new MorePaperLib(plugin);
+
+        Duration updateRateDuration = Duration.ofMillis(updateRateMillis);
+        ScheduledTask scheduledTask = paperLib.scheduling().asyncScheduler().runAtFixedRate(
                 titleUpdateTask,
-                updateRateInTicks,
-                updateRateInTicks,
-                TimeUnit.MILLISECONDS);
+                updateRateDuration,
+                updateRateDuration);
         tasks.add(scheduledTask
         );
 
@@ -80,14 +83,15 @@ public class AnimationManager {
 
         this.title = titleLines.get(0);
 
+        MorePaperLib paperLib = new MorePaperLib(plugin);
+
         TitleUpdateTask titleUpdateTask = new TitleUpdateTask(plugin, this, titleLines);
-        long updateRateInTicks = config.getInt("scoreboard-animated.title.update-rate") * 50L;
-        ScheduledTask scheduledTask = plugin.getServer().getAsyncScheduler().runAtFixedRate(
-                plugin,
+        long updateRateMillis = config.getInt("scoreboard-animated.title.update-rate") * 50L;
+        Duration updateRateDuration = Duration.ofMillis(updateRateMillis);
+        ScheduledTask scheduledTask = paperLib.scheduling().asyncScheduler().runAtFixedRate(
                 titleUpdateTask,
-                updateRateInTicks,
-                updateRateInTicks,
-                TimeUnit.MILLISECONDS);
+                updateRateDuration,
+                updateRateDuration);
         tasks.add(scheduledTask
         );
 
@@ -118,7 +122,7 @@ public class AnimationManager {
     private void updateLines(ConfigurationSection configSection, List<String> linesList) {
         for (String key : configSection.getKeys(false)) {
             List<String> list = configSection.getStringList(key + ".lines");
-            long updateRate = configSection.getInt(key + ".update-rate") * 50L;
+            long updateRateMillis = configSection.getInt(key + ".update-rate") * 50L;
             int lineNumber = Integer.parseInt(key);
 
             list.replaceAll(TextUtils::parseToLegacyColors);
@@ -128,12 +132,14 @@ public class AnimationManager {
             LineUpdateTask lineUpdateTask = new LineUpdateTask(
                     plugin, this, list, lineNumber
             );
-            ScheduledTask scheduledTask = plugin.getServer().getAsyncScheduler().runAtFixedRate(
-                    plugin,
+
+            MorePaperLib paperLib = new MorePaperLib(plugin);
+
+            Duration updateRateDuration = Duration.ofMillis(updateRateMillis);
+            ScheduledTask scheduledTask = paperLib.scheduling().asyncScheduler().runAtFixedRate(
                     lineUpdateTask,
-                    updateRate,
-                    updateRate,
-                    TimeUnit.MILLISECONDS
+                    updateRateDuration,
+                    updateRateDuration
             );
             tasks.add(scheduledTask
             );

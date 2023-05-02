@@ -1,12 +1,16 @@
 [versions]
-spigot = "1.19.4-R0.1-SNAPSHOT"
+spigot = "1.16.5-R0.1-SNAPSHOT"
 
 placeholder = "2.11.1"
 
+morepaperlib = "0.4.2"
+
 [libraries]
-spigot = { group = "dev.folia", name = "folia-api", version.ref = "spigot" }
+spigot = { group = "com.destroystokyo.paper", name = "paper-api", version.ref = "spigot" }
 
 placeholder = { group = "me.clip", name = "placeholderapi", version.ref = "placeholder" }
+
+morepaperlib = { group = "space.arim.morepaperlib", name = "morepaperlib", version.ref = "morepaperlib" }
 
 [plugins]
 shadow = { id = "com.github.johnrengelman.shadow", version = "7.1.2"}

@@ -3,18 +3,19 @@ package com.xism4.sternalboard.managers;
 import com.xism4.sternalboard.Scoreboards;
 import com.xism4.sternalboard.SternalBoardHandler;
 import com.xism4.sternalboard.SternalBoardPlugin;
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import space.arim.morepaperlib.MorePaperLib;
+import space.arim.morepaperlib.scheduling.ScheduledTask;
 
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 public class ScoreboardManager {
 
@@ -48,25 +49,34 @@ public class ScoreboardManager {
             return;
         }
 
-        updateTask = plugin.getServer().getAsyncScheduler().runAtFixedRate(plugin, scheduledTask -> {
-            ConfigurationSection defaultSection = plugin.getConfig()
-                    .getConfigurationSection("settings.scoreboard");
+        MorePaperLib paperLib = new MorePaperLib(plugin);
 
-            boardHandlerMap.forEach((context, handler) -> {
-                switch (scoreboardMode) {
-                    case "WORLD":
-                        processWorldScoreboard(handler, defaultSection);
-                        break;
-                    case "PERMISSION":
-                        processPermissionScoreboard(handler, defaultSection);
-                        break;
-                    case "NORMAL":
-                    default:
-                        Scoreboards.updateFromSection(plugin, handler, defaultSection);
-                        break;
-                }
-            });
-        }, 0, updateTime * 50L, TimeUnit.MILLISECONDS);
+        Duration updateTimeDuration = Duration.ofMillis(updateTime * 50L);
+        Duration initialDuration = Duration.ofMillis(0);
+
+        updateTask = paperLib.scheduling().asyncScheduler().runAtFixedRate(
+                () -> {
+                    ConfigurationSection defaultSection = plugin.getConfig()
+                            .getConfigurationSection("settings.scoreboard");
+
+                    boardHandlerMap.forEach((context, handler) -> {
+                        switch (scoreboardMode) {
+                            case "WORLD":
+                                processWorldScoreboard(handler, defaultSection);
+                                break;
+                            case "PERMISSION":
+                                processPermissionScoreboard(handler, defaultSection);
+                                break;
+                            case "NORMAL":
+                            default:
+                                Scoreboards.updateFromSection(plugin, handler, defaultSection);
+                                break;
+                        }
+                    });
+                },
+                initialDuration,
+                updateTimeDuration
+        );
     }
 
     public void setScoreboard(Player player) {

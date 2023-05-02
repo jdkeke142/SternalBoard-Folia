@@ -5,12 +5,10 @@ import com.xism4.sternalboard.SternalBoardPlugin;
 import com.xism4.sternalboard.managers.ScoreboardManager;
 import com.xism4.sternalboard.managers.animation.AnimationManager;
 import com.xism4.sternalboard.utils.TextUtils;
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
 import java.util.List;
-import java.util.function.Consumer;
 
-public class TitleUpdateTask implements Consumer<ScheduledTask> {
+public class TitleUpdateTask implements Runnable {
     private final String[] lines;
     private final AnimationManager animationManager;
     private final ScoreboardManager scoreboardManager;
@@ -26,7 +24,7 @@ public class TitleUpdateTask implements Consumer<ScheduledTask> {
     }
 
     @Override
-    public void accept(ScheduledTask scheduledTask) {
+    public void run() {
         animationManager.setTitle(lines[index]);
         index++;
 
