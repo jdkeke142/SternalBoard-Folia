@@ -7,19 +7,19 @@ import com.xism4.sternalboard.managers.ScoreboardManager;
 import com.xism4.sternalboard.managers.animation.tasks.LineUpdateTask;
 import com.xism4.sternalboard.managers.animation.tasks.TitleUpdateTask;
 import com.xism4.sternalboard.utils.TextUtils;
-import org.bukkit.Bukkit;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class AnimationManager {
     private final SternalBoardPlugin plugin;
     private String title;
     private String[] lines;
-    private List<Integer> taskIds;
+    private List<ScheduledTask> tasks;
 
     public AnimationManager(SternalBoardPlugin plugin) {
         this.plugin = plugin;
@@ -34,21 +34,21 @@ public class AnimationManager {
             return;
         }
 
-        this.taskIds = new ArrayList<>();
+        this.tasks = new ArrayList<>();
 
         List<String> titleLines = config.getStringList("scoreboard-animated.title.lines");
         titleLines.replaceAll(TextUtils::parseToLegacyColors);
         this.title = titleLines.get(0);
 
         TitleUpdateTask titleUpdateTask = new TitleUpdateTask(plugin, this, titleLines);
-        titleUpdateTask.runTaskTimerAsynchronously(
+        long updateRateInTicks = config.getInt("scoreboard-animated.title.update-rate") * 50L;
+        ScheduledTask scheduledTask = plugin.getServer().getAsyncScheduler().runAtFixedRate(
                 plugin,
-                config.getInt(
-                        "scoreboard-animated.title.update-rate"),
-                config.getInt(
-                        "scoreboard-animated.title.update-rate")
-        );
-        taskIds.add(titleUpdateTask.getTaskId()
+                titleUpdateTask,
+                updateRateInTicks,
+                updateRateInTicks,
+                TimeUnit.MILLISECONDS);
+        tasks.add(scheduledTask
         );
 
         List<String> linesList = Lists.newArrayList();
@@ -62,14 +62,13 @@ public class AnimationManager {
     }
 
     public void reload() {
-        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
         FileConfiguration config = plugin.getAnimConfig();
 
-        for (Integer taskId : taskIds) {
-            scheduler.cancelTask(taskId);
+        for (ScheduledTask task : tasks) {
+            task.cancel();
         }
 
-        this.taskIds = new ArrayList<>();
+        this.tasks = new ArrayList<>();
 
         if (!plugin.isAnimationEnabled()) {
             return;
@@ -82,14 +81,14 @@ public class AnimationManager {
         this.title = titleLines.get(0);
 
         TitleUpdateTask titleUpdateTask = new TitleUpdateTask(plugin, this, titleLines);
-        titleUpdateTask.runTaskTimerAsynchronously(
+        long updateRateInTicks = config.getInt("scoreboard-animated.title.update-rate") * 50L;
+        ScheduledTask scheduledTask = plugin.getServer().getAsyncScheduler().runAtFixedRate(
                 plugin,
-                config.getInt(
-                        "scoreboard-animated.title.update-rate"),
-                config.getInt(
-                        "scoreboard-animated.title.update-rate")
-        );
-        taskIds.add(titleUpdateTask.getTaskId()
+                titleUpdateTask,
+                updateRateInTicks,
+                updateRateInTicks,
+                TimeUnit.MILLISECONDS);
+        tasks.add(scheduledTask
         );
 
         List<String> linesList = Lists.newArrayList();
@@ -119,7 +118,7 @@ public class AnimationManager {
     private void updateLines(ConfigurationSection configSection, List<String> linesList) {
         for (String key : configSection.getKeys(false)) {
             List<String> list = configSection.getStringList(key + ".lines");
-            int updateRate = configSection.getInt(key + ".update-rate");
+            long updateRate = configSection.getInt(key + ".update-rate") * 50L;
             int lineNumber = Integer.parseInt(key);
 
             list.replaceAll(TextUtils::parseToLegacyColors);
@@ -129,8 +128,14 @@ public class AnimationManager {
             LineUpdateTask lineUpdateTask = new LineUpdateTask(
                     plugin, this, list, lineNumber
             );
-            lineUpdateTask.runTaskTimerAsynchronously(plugin, updateRate, updateRate);
-            taskIds.add(lineUpdateTask.getTaskId()
+            ScheduledTask scheduledTask = plugin.getServer().getAsyncScheduler().runAtFixedRate(
+                    plugin,
+                    lineUpdateTask,
+                    updateRate,
+                    updateRate,
+                    TimeUnit.MILLISECONDS
+            );
+            tasks.add(scheduledTask
             );
         }
     }

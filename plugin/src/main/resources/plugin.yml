@@ -3,6 +3,7 @@ main: com.xism4.sternalboard.SternalBoardPlugin
 authors: [ xIsm4, Jonakls ]
 version: 2.2.0
 api-version: "1.13"
+folia-supported: true
 softdepend: [ PlaceholderAPI ]
 commands:
   sternalboard:

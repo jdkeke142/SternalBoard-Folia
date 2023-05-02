@@ -3,7 +3,7 @@ package com.xism4.sternalboard.managers;
 import com.xism4.sternalboard.Scoreboards;
 import com.xism4.sternalboard.SternalBoardHandler;
 import com.xism4.sternalboard.SternalBoardPlugin;
-import org.bukkit.Bukkit;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -14,12 +14,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class ScoreboardManager {
 
     private final SternalBoardPlugin plugin;
     private final Map<UUID, SternalBoardHandler> boardHandlerMap;
-    private Integer updateTask;
+    private ScheduledTask updateTask;
 
     public ScoreboardManager(SternalBoardPlugin plugin) {
         this.plugin = plugin;
@@ -47,8 +48,7 @@ public class ScoreboardManager {
             return;
         }
 
-        updateTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-
+        updateTask = plugin.getServer().getAsyncScheduler().runAtFixedRate(plugin, scheduledTask -> {
             ConfigurationSection defaultSection = plugin.getConfig()
                     .getConfigurationSection("settings.scoreboard");
 
@@ -66,7 +66,7 @@ public class ScoreboardManager {
                         break;
                 }
             });
-        }, 0, updateTime).getTaskId();
+        }, 0, updateTime * 50L, TimeUnit.MILLISECONDS);
     }
 
     public void setScoreboard(Player player) {
@@ -90,7 +90,7 @@ public class ScoreboardManager {
 
     public void reload() {
         if (updateTask != null) {
-            Bukkit.getServer().getScheduler().cancelTask(updateTask);
+            updateTask.cancel();
         }
 
         // TODO: 30/11/2022 view this condition, is it necessary?

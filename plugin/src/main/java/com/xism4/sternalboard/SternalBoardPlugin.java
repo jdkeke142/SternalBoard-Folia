@@ -39,7 +39,7 @@ public class SternalBoardPlugin extends JavaPlugin {
         loadTabCompletions();
         eventHandler();
 
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> new Metrics(this, STERNAL_ID_METRICS));
+        //Bukkit.getScheduler().runTaskAsynchronously(this, () -> new Metrics(this, STERNAL_ID_METRICS));
     }
 
     @Override

@@ -5,11 +5,11 @@ import com.xism4.sternalboard.SternalBoardPlugin;
 import com.xism4.sternalboard.managers.ScoreboardManager;
 import com.xism4.sternalboard.managers.animation.AnimationManager;
 import com.xism4.sternalboard.utils.TextUtils;
-import org.bukkit.scheduler.BukkitRunnable;
-
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.util.List;
+import java.util.function.Consumer;
 
-public class LineUpdateTask extends BukkitRunnable {
+public class LineUpdateTask implements Consumer<ScheduledTask> {
     private final String[] lines;
     private final AnimationManager animationManager;
     private final ScoreboardManager scoreboardManager;
@@ -27,7 +27,7 @@ public class LineUpdateTask extends BukkitRunnable {
     }
 
     @Override
-    public void run() {
+    public void accept(ScheduledTask scheduledTask) {
         animationManager.setLine(lineNumber, lines[index]);
         index++;
 
